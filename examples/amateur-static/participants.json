@@ -1,0 +1,28 @@
+{
+  "participants": [
+    {
+      "id": "team-1",
+      "name": "FC United",
+      "shortName": "FCU",
+      "logo": "./assets/fc-united.png"
+    },
+    {
+      "id": "team-2",
+      "name": "Rovers Athletic",
+      "shortName": "ROV",
+      "logo": "./assets/rovers.png"
+    },
+    {
+      "id": "team-3",
+      "name": "City FC",
+      "shortName": "CFC",
+      "logo": "./assets/city-fc.png"
+    },
+    {
+      "id": "team-4",
+      "name": "United Wanderers",
+      "shortName": "UW",
+      "logo": "./assets/wanderers.png"
+    }
+  ]
+}

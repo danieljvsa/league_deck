@@ -1,0 +1,214 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "OpenLeague Package Schema",
+  "description": "Schema for OpenLeague League Packages",
+  "type": "object",
+  "required": ["schemaVersion", "league"],
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "description": "Schema version (e.g., '1.0')",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "league": {
+      "type": "object",
+      "description": "League identity",
+      "required": ["id", "name", "sport"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique league identifier"
+        },
+        "name": {
+          "type": "string",
+          "description": "Display name of the league"
+        },
+        "sport": {
+          "type": "string",
+          "description": "Sport type (e.g., 'football', 'tennis', 'basketball')"
+        },
+        "country": {
+          "type": "string",
+          "description": "Country code (e.g., 'PT', 'US')"
+        },
+        "description": {
+          "type": "string",
+          "description": "League description"
+        }
+      }
+    },
+    "branding": {
+      "type": "object",
+      "description": "Visual branding",
+      "properties": {
+        "logo": {
+          "type": "string",
+          "description": "Path or URL to league logo"
+        },
+        "primaryColor": {
+          "type": "string",
+          "description": "Primary color in hex format (e.g., '#6633CC')"
+        },
+        "cover": {
+          "type": "string",
+          "description": "Path or URL to cover image"
+        }
+      }
+    },
+    "season": {
+      "type": "object",
+      "description": "Current season information",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Season name (e.g., '2026/27')"
+        }
+      }
+    },
+    "providers": {
+      "type": "object",
+      "description": "Data provider configurations",
+      "properties": {
+        "metadata": { "$ref": "#/definitions/providerConfig" },
+        "participants": { "$ref": "#/definitions/providerConfig" },
+        "events": { "$ref": "#/definitions/providerConfig" },
+        "standings": { "$ref": "#/definitions/providerConfig" },
+        "live": { "$ref": "#/definitions/providerConfig" }
+      }
+    },
+    "participants": {
+      "type": "object",
+      "description": "Static participant data",
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Path or URL to participants JSON"
+        }
+      }
+    },
+    "events": {
+      "type": "object",
+      "description": "Static event data",
+      "properties": {
+        "source": {
+          "type": "string",
+          "description": "Path or URL to events JSON"
+        }
+      }
+    },
+    "media": {
+      "type": "object",
+      "description": "Media sources",
+      "properties": {
+        "streams": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/mediaSource" }
+        },
+        "podcasts": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/mediaSource" }
+        }
+      }
+    },
+    "news": {
+      "type": "array",
+      "description": "News sources",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["rss", "atom"]
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    },
+    "mappings": {
+      "type": "object",
+      "description": "Cross-provider entity mappings",
+      "properties": {
+        "participants": {
+          "type": "object",
+          "description": "Participant ID mappings by provider"
+        },
+        "events": {
+          "type": "object",
+          "description": "Event ID mappings by provider"
+        }
+      }
+    },
+    "requirements": {
+      "type": "object",
+      "description": "Authentication requirements",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "authentication": {
+            "type": "string",
+            "enum": ["api-key", "oauth"]
+          },
+          "requiredFor": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "setupUrl": {
+            "type": "string",
+            "format": "uri"
+          }
+        }
+      }
+    }
+  },
+  "definitions": {
+    "providerConfig": {
+      "type": "object",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["thesportsdb", "sportscore", "static-json", "generic-rest"]
+        },
+        "leagueId": {
+          "type": "string"
+        },
+        "apiUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "source": {
+          "type": "string"
+        }
+      }
+    },
+    "mediaSource": {
+      "type": "object",
+      "required": ["id", "name", "provider"],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "provider": {
+          "type": "string",
+          "enum": ["youtube", "spotify", "rss", "generic-web"]
+        },
+        "channelId": {
+          "type": "string"
+        },
+        "showId": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
+      }
+    }
+  }
+}

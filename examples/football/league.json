@@ -1,0 +1,52 @@
+{
+  "schemaVersion": "1.0",
+  "league": {
+    "id": "liga-portugal",
+    "name": "Liga Portugal",
+    "sport": "football",
+    "country": "PT",
+    "description": "Portuguese professional football competition"
+  },
+  "branding": {
+    "primaryColor": "#6633CC"
+  },
+  "season": {
+    "name": "2026/27"
+  },
+  "providers": {
+    "metadata": {
+      "type": "thesportsdb",
+      "leagueId": "4335"
+    },
+    "participants": {
+      "type": "thesportsdb",
+      "leagueId": "4335"
+    },
+    "events": {
+      "type": "thesportsdb",
+      "leagueId": "4335"
+    },
+    "standings": {
+      "type": "thesportsdb",
+      "leagueId": "4335"
+    }
+  },
+  "media": {
+    "streams": [
+      {
+        "id": "official-tv",
+        "name": "Official League TV",
+        "provider": "youtube",
+        "channelId": ""
+      }
+    ],
+    "podcasts": [
+      {
+        "id": "official-podcast",
+        "name": "Official Podcast",
+        "provider": "spotify",
+        "showId": ""
+      }
+    ]
+  }
+}

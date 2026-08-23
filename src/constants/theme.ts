@@ -1,40 +1,96 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
+import { Platform, useColorScheme } from 'react-native';
 
-import '@/global.css';
-
-import { Platform } from 'react-native';
+export interface ThemeColorSet {
+  text: string;
+  textSecondary: string;
+  textMuted: string;
+  background: string;
+  surface: string;
+  surfaceElevated: string;
+  border: string;
+  borderLight: string;
+  primary: string;
+  primaryLight: string;
+  danger: string;
+  dangerLight: string;
+  success: string;
+  successLight: string;
+  warning: string;
+  warningLight: string;
+  live: string;
+  liveLight: string;
+  info: string;
+  infoLight: string;
+  muted: string;
+  disabled: string;
+  shadow: string;
+}
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    text: '#1C1C1E',
+    textSecondary: '#636366',
+    textMuted: '#8E8E93',
+    background: '#F2F2F7',
+    surface: '#FFFFFF',
+    surfaceElevated: '#FFFFFF',
+    border: '#D1D1D6',
+    borderLight: '#E5E5EA',
+    primary: '#007AFF',
+    primaryLight: '#E8F4FD',
+    danger: '#FF3B30',
+    dangerLight: '#FFE5E5',
+    success: '#34C759',
+    successLight: '#E8F8ED',
+    warning: '#FF9500',
+    warningLight: '#FFF3E0',
+    live: '#FF3B30',
+    liveLight: '#FFE5E5',
+    info: '#007AFF',
+    infoLight: '#E8F4FD',
+    muted: '#F2F2F7',
+    disabled: '#C7C7CC',
+    shadow: '#000000',
   },
   dark: {
-    text: '#ffffff',
+    text: '#F5F5F7',
+    textSecondary: '#AEAEB2',
+    textMuted: '#636366',
     background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    surface: '#1C1C1E',
+    surfaceElevated: '#2C2C2E',
+    border: '#38383A',
+    borderLight: '#48484A',
+    primary: '#0A84FF',
+    primaryLight: '#0A84FF20',
+    danger: '#FF453A',
+    dangerLight: '#FF453A20',
+    success: '#30D158',
+    successLight: '#30D15820',
+    warning: '#FF9F0A',
+    warningLight: '#FF9F0A20',
+    live: '#FF453A',
+    liveLight: '#FF453A20',
+    info: '#0A84FF',
+    infoLight: '#0A84FF20',
+    muted: '#2C2C2E',
+    disabled: '#48484A',
+    shadow: '#000000',
   },
-} as const;
+};
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
+export type ThemeColors = keyof ThemeColorSet;
+
+export function useColors(): ThemeColorSet {
+  const colorScheme = useColorScheme();
+  return colorScheme === 'dark' ? Colors.dark : Colors.light;
+}
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
   default: {

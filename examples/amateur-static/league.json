@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "1.0",
+  "league": {
+    "id": "amateur-sunday-league",
+    "name": "Sunday Morning League",
+    "sport": "football",
+    "country": "US",
+    "description": "Local amateur Sunday morning football league"
+  },
+  "branding": {
+    "primaryColor": "#28A745"
+  },
+  "season": {
+    "name": "Spring 2026"
+  },
+  "participants": {
+    "source": "./participants.json"
+  },
+  "events": {
+    "source": "./events.json"
+  }
+}
