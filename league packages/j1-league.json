@@ -1,0 +1,62 @@
+{
+  "schemaVersion": "0.1",
+  "league": {
+    "id": "j1-league",
+    "name": "J1 League",
+    "sport": "football",
+    "country": "JP",
+    "description": "LeagueDeck package for Japan's J1 League."
+  },
+  "season": {
+    "name": "2026"
+  },
+  "branding": {},
+  "providers": {
+    "metadata": {
+      "type": "thesportsdb-v1",
+      "leagueName": "Japanese J1 League",
+      "authentication": {
+        "type": "public-v1-key",
+        "key": "123"
+      }
+    },
+    "participants": {
+      "type": "thesportsdb-v1",
+      "leagueName": "Japanese J1 League",
+      "authentication": {
+        "type": "public-v1-key",
+        "key": "123"
+      }
+    },
+    "events": {
+      "type": "thesportsdb-v1",
+      "leagueName": "Japanese J1 League",
+      "authentication": {
+        "type": "public-v1-key",
+        "key": "123"
+      }
+    },
+    "standings": {
+      "type": "thesportsdb-v1",
+      "leagueName": "Japanese J1 League",
+      "authentication": {
+        "type": "public-v1-key",
+        "key": "123"
+      }
+    },
+    "live": {
+      "type": "sportscore",
+      "enabled": false,
+      "note": "Placeholder until the SportScore adapter and J1 League mapping are verified."
+    }
+  },
+  "media": {
+    "streams": [],
+    "podcasts": []
+  },
+  "notes": [
+    "TheSportsDB V1 uses its documented public/free key 123.",
+    "Provider-specific league IDs should be added only after verification.",
+    "YouTube streams and Spotify podcasts can be added by package maintainers."
+  ]
+}
