@@ -1,5 +1,5 @@
 import { validatePackage, validateSchemaVersion } from '../core/package/validator';
-import { deriveCapabilities } from '../core/capabilities/derive';
+import { deriveCapabilities, getEnabledCapabilities, hasCapability } from '../core/capabilities/derive';
 import j1Package from '../../league packages/j1-league.json';
 
 describe('J1 League Package v1.0', () => {
@@ -67,18 +67,6 @@ describe('J1 League Package v1.0', () => {
     expect(j1Package.season?.name).toBe('2026');
   });
 
-  it('derives correct capabilities', () => {
-    const caps = deriveCapabilities(j1Package as any);
-    const capIds = caps.filter(c => c.enabled && c.available).map(c => c.id);
-    expect(capIds).toContain('overview');
-    expect(capIds).toContain('events');
-    expect(capIds).toContain('participants');
-    expect(capIds).toContain('standings');
-    expect(capIds).not.toContain('streams');
-    expect(capIds).not.toContain('podcasts');
-    expect(capIds).not.toContain('news');
-  });
-
   it('has navigation config', () => {
     expect(j1Package.navigation?.order).toBeDefined();
     expect(j1Package.navigation?.order).toContain('overview');
@@ -90,5 +78,41 @@ describe('J1 League Package v1.0', () => {
   it('has empty media arrays (not errors)', () => {
     expect(j1Package.media?.streams).toEqual([]);
     expect(j1Package.media?.podcasts).toEqual([]);
+  });
+
+  it('does not advertise unfinished live provider', () => {
+    expect((j1Package.providers as any)?.live).toBeUndefined();
+  });
+
+  describe('capabilities', () => {
+    const caps = deriveCapabilities(j1Package as any);
+    const enabled = getEnabledCapabilities(caps);
+
+    it('includes overview, events, standings, participants', () => {
+      expect(enabled).toContain('overview');
+      expect(enabled).toContain('events');
+      expect(enabled).toContain('standings');
+      expect(enabled).toContain('participants');
+    });
+
+    it('does not include live', () => {
+      expect(hasCapability(caps, 'live')).toBe(false);
+    });
+
+    it('does not include news', () => {
+      expect(hasCapability(caps, 'news')).toBe(false);
+    });
+
+    it('does not include streams', () => {
+      expect(hasCapability(caps, 'streams')).toBe(false);
+    });
+
+    it('does not include podcasts', () => {
+      expect(hasCapability(caps, 'podcasts')).toBe(false);
+    });
+
+    it('expected capability set matches definition of done', () => {
+      expect(enabled.sort()).toEqual(['events', 'overview', 'participants', 'standings'].sort());
+    });
   });
 });

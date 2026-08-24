@@ -2,6 +2,9 @@ import { ProviderAdapter, ProviderResponse, normalizeEventStatus, normalizeScore
 import { Participant, Event, Standing } from '../../domain';
 import { fetchJson } from '../../core/networking/fetch';
 
+const THESPORTSDB_API_KEY = '123';
+const BASE_URL = `https://www.thesportsdb.com/api/v1/json/${THESPORTSDB_API_KEY}`;
+
 interface TheSportsDBTeam {
   idTeam: string;
   strTeam: string;
@@ -19,8 +22,10 @@ interface TheSportsDBEvent {
   intHomeScore: string | null;
   intAwayScore: string | null;
   strStatus: string;
+  dateEvent: string;
+  dateEventLocal?: string | null;
   strTime: string;
-  strDate: string;
+  strTimeLocal?: string | null;
   strVenue: string;
   idHomeTeam: string;
   idAwayTeam: string;
@@ -43,8 +48,6 @@ interface TheSportsDBResponse {
     intPoints: string;
   }>;
 }
-
-const BASE_URL = 'https://www.thesportsdb.com/api/v1/json/3';
 
 export class TheSportsDBAdapter implements ProviderAdapter {
   id = 'thesportsdb';
@@ -82,7 +85,7 @@ export class TheSportsDBAdapter implements ProviderAdapter {
       name: event.strEvent,
       competitionId: leagueId,
       seasonId: season || undefined,
-      date: event.strDate,
+      date: event.dateEvent,
       time: event.strTime,
       status: normalizeEventStatus(event.strStatus),
       homeParticipantId: event.idHomeTeam,

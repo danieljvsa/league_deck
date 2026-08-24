@@ -91,7 +91,7 @@ describe('deriveCapabilities', () => {
     expect(live!.missingRequirements).toHaveLength(1);
   });
 
-  it('live capability is available when no requirements', () => {
+  it('live capability is derived but adapter availability is separate', () => {
     const pkg = makePackage({
       providers: { live: { type: 'sportscore', leagueId: '123' } },
     });

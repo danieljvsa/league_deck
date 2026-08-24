@@ -1,0 +1,43 @@
+{
+  "table": [
+    {
+      "intRank": "1",
+      "idTeam": "133923",
+      "strTeam": "Urawa Red Diamonds",
+      "intPlayed": "25",
+      "intWin": "17",
+      "intDraw": "5",
+      "intLoss": "3",
+      "intGoalsFor": "48",
+      "intGoalsAgainst": "20",
+      "intGoalDifference": "28",
+      "intPoints": "56"
+    },
+    {
+      "intRank": "2",
+      "idTeam": "133647",
+      "strTeam": "Yokohama F. Marinos",
+      "intPlayed": "25",
+      "intWin": "15",
+      "intDraw": "6",
+      "intLoss": "4",
+      "intGoalsFor": "44",
+      "intGoalsAgainst": "22",
+      "intGoalDifference": "22",
+      "intPoints": "51"
+    },
+    {
+      "intRank": "3",
+      "idTeam": "133648",
+      "strTeam": "Kashima Antlers",
+      "intPlayed": "25",
+      "intWin": "14",
+      "intDraw": "7",
+      "intLoss": "4",
+      "intGoalsFor": "40",
+      "intGoalsAgainst": "18",
+      "intGoalDifference": "22",
+      "intPoints": "49"
+    }
+  ]
+}

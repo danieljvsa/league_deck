@@ -31,11 +31,6 @@
       "type": "thesportsdb",
       "leagueId": "4633",
       "season": "2026"
-    },
-    "live": {
-      "type": "sportscore",
-      "leagueId": "4633",
-      "season": "2026"
     }
   },
   "media": {

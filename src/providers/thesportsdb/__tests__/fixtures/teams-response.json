@@ -1,0 +1,30 @@
+{
+  "teams": [
+    {
+      "idTeam": "133923",
+      "idLeague": "4633",
+      "strTeam": "Urawa Red Diamonds",
+      "strTeamShort": "Urawa",
+      "strAlternate": "浦和レッドダイヤモンズ",
+      "intFormedYear": "1950",
+      "strSport": "Soccer",
+      "strCountry": "Japan",
+      "strTeamBadge": "https://www.thesportsdb.com/images/media/team/badge/vwpvry1467462651.png",
+      "strGender": "Male",
+      "strStadium": "Saitama Stadium 2002"
+    },
+    {
+      "idTeam": "133647",
+      "idLeague": "4633",
+      "strTeam": "Yokohama F. Marinos",
+      "strTeamShort": "Yokohama",
+      "strAlternate": "横浜F・マリノス",
+      "intFormedYear": "1972",
+      "strSport": "Soccer",
+      "strCountry": "Japan",
+      "strTeamBadge": "https://www.thesportsdb.com/images/media/team/badge/vwpvry1467462652.png",
+      "strGender": "Male",
+      "strStadium": "Nissan Stadium"
+    }
+  ]
+}
