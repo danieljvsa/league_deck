@@ -43,6 +43,7 @@ export interface LeaguePackage {
 export interface ProviderConfig {
   type: 'thesportsdb' | 'sportscore' | 'static-json' | 'generic-rest';
   leagueId?: string;
+  season?: string;
   apiUrl?: string;
   source?: string;
 }

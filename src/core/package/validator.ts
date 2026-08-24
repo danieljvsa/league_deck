@@ -10,6 +10,9 @@ export interface ValidationResult {
   errors: ValidationError[];
 }
 
+const VALID_PROVIDER_TYPES = ['thesportsdb', 'sportscore', 'static-json', 'generic-rest'];
+const PROVIDERS_REQUIRING_LEAGUE_ID = ['thesportsdb'];
+
 export function validatePackage(pkg: unknown): ValidationResult {
   const errors: ValidationError[] = [];
 
@@ -53,10 +56,23 @@ export function validatePackage(pkg: unknown): ValidationResult {
     for (const [key, value] of Object.entries(providers)) {
       if (typeof value !== 'object' || value === null) {
         errors.push({ field: `providers.${key}`, message: `providers.${key} must be an object` });
-      } else {
-        const provider = value as Record<string, unknown>;
-        if (!provider.type || typeof provider.type !== 'string') {
-          errors.push({ field: `providers.${key}.type`, message: `providers.${key}.type is required` });
+        continue;
+      }
+      const provider = value as Record<string, unknown>;
+      if (!provider.type || typeof provider.type !== 'string') {
+        errors.push({ field: `providers.${key}.type`, message: `providers.${key}.type is required` });
+      } else if (!VALID_PROVIDER_TYPES.includes(provider.type as string)) {
+        errors.push({ 
+          field: `providers.${key}.type`, 
+          message: `providers.${key}.type "${provider.type}" is not a known provider. Valid types: ${VALID_PROVIDER_TYPES.join(', ')}` 
+        });
+      }
+      if (PROVIDERS_REQUIRING_LEAGUE_ID.includes(provider.type as string)) {
+        if (!provider.leagueId || typeof provider.leagueId !== 'string') {
+          errors.push({ 
+            field: `providers.${key}.leagueId`, 
+            message: `providers.${key}.leagueId is required for provider "${provider.type}"` 
+          });
         }
       }
     }

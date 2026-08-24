@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "0.1",
+  "schemaVersion": "1.0",
   "league": {
     "id": "j1-league",
     "name": "J1 League",
@@ -13,50 +13,40 @@
   "branding": {},
   "providers": {
     "metadata": {
-      "type": "thesportsdb-v1",
-      "leagueName": "Japanese J1 League",
-      "authentication": {
-        "type": "public-v1-key",
-        "key": "123"
-      }
+      "type": "thesportsdb",
+      "leagueId": "4633",
+      "season": "2026"
     },
     "participants": {
-      "type": "thesportsdb-v1",
-      "leagueName": "Japanese J1 League",
-      "authentication": {
-        "type": "public-v1-key",
-        "key": "123"
-      }
+      "type": "thesportsdb",
+      "leagueId": "4633",
+      "season": "2026"
     },
     "events": {
-      "type": "thesportsdb-v1",
-      "leagueName": "Japanese J1 League",
-      "authentication": {
-        "type": "public-v1-key",
-        "key": "123"
-      }
+      "type": "thesportsdb",
+      "leagueId": "4633",
+      "season": "2026"
     },
     "standings": {
-      "type": "thesportsdb-v1",
-      "leagueName": "Japanese J1 League",
-      "authentication": {
-        "type": "public-v1-key",
-        "key": "123"
-      }
+      "type": "thesportsdb",
+      "leagueId": "4633",
+      "season": "2026"
     },
     "live": {
       "type": "sportscore",
-      "enabled": false,
-      "note": "Placeholder until the SportScore adapter and J1 League mapping are verified."
+      "leagueId": "4633",
+      "season": "2026"
     }
   },
   "media": {
     "streams": [],
     "podcasts": []
   },
-  "notes": [
-    "TheSportsDB V1 uses its documented public/free key 123.",
-    "Provider-specific league IDs should be added only after verification.",
-    "YouTube streams and Spotify podcasts can be added by package maintainers."
-  ]
+  "navigation": {
+    "order": ["overview", "events", "standings", "participants"],
+    "labels": {
+      "events": "Matches",
+      "participants": "Teams"
+    }
+  }
 }

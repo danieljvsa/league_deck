@@ -37,6 +37,7 @@ export default function LeagueOverviewScreen() {
   const [providerStatus, setProviderStatus] = useState<Record<string, boolean>>({});
   const [liveMatches, setLiveMatches] = useState<Event[]>([]);
   const [nextMatch, setNextMatch] = useState<Event | null>(null);
+  const [participantMap, setParticipantMap] = useState<Map<string, string>>(new Map());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -65,15 +66,54 @@ export default function LeagueOverviewScreen() {
     return () => { cancelled = true; };
   }, [league]);
 
+  const loadMatchData = useCallback(async () => {
+    if (!league?.package.providers?.events) return;
+
+    try {
+      const eventsConfig = league.package.providers.events;
+      const participantsConfig = league.package.providers.participants || eventsConfig;
+
+      const [fetchedEvents, fetchedParticipants] = await Promise.all([
+        providerService.fetchEvents(league.id, eventsConfig),
+        providerService.fetchParticipants(league.id, participantsConfig),
+      ]);
+
+      const participantMap = new Map<string, string>();
+      fetchedParticipants.forEach(p => participantMap.set(p.id, p.name));
+
+      const live = fetchedEvents.filter(e =>
+        e.status === 'live' || e.status === 'in_play' || e.status === 'halftime'
+      );
+
+      const now = new Date();
+      const upcoming = fetchedEvents
+        .filter(e => e.status === 'scheduled' && new Date(e.date) >= now)
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      setLiveMatches(live);
+      setNextMatch(upcoming.length > 0 ? upcoming[0] : null);
+      setParticipantMap(participantMap);
+    } catch {
+      if (__DEV__) console.warn('Failed to load overview match data');
+    }
+  }, [league]);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadMatchData();
+    return () => { cancelled = true; };
+  }, [loadMatchData]);
+
   const onRefresh = useCallback(async () => {
     if (isRefreshing) return;
     setIsRefreshing(true);
     setRefreshing(true);
     await refreshLeague(id);
     await checkProviderStatusRef.current?.();
+    await loadMatchData();
     setRefreshing(false);
     setIsRefreshing(false);
-  }, [id, isRefreshing, refreshLeague]);
+  }, [id, isRefreshing, refreshLeague, loadMatchData]);
 
   const handleRemove = useCallback(() => {
     if (!league) return;
@@ -210,8 +250,8 @@ export default function LeagueOverviewScreen() {
             <LiveMatchCard
               key={match.id}
               event={match}
-              homeName={`Team ${match.homeParticipantId || 'Home'}`}
-              awayName={`Team ${match.awayParticipantId || 'Away'}`}
+              homeName={participantMap.get(match.homeParticipantId || '') || 'Home'}
+              awayName={participantMap.get(match.awayParticipantId || '') || 'Away'}
               onPress={() => router.push(`/league/${id}/event/${match.id}`)}
             />
           ))}
@@ -224,8 +264,8 @@ export default function LeagueOverviewScreen() {
           <Text style={[styles.sectionTitle, { color: colors.text }]} maxFontSizeMultiplier={1.3}>Next Match</Text>
           <NextMatchCard
             event={nextMatch}
-            homeName={`Team ${nextMatch.homeParticipantId || 'Home'}`}
-            awayName={`Team ${nextMatch.awayParticipantId || 'Away'}`}
+            homeName={participantMap.get(nextMatch.homeParticipantId || '') || 'Home'}
+            awayName={participantMap.get(nextMatch.awayParticipantId || '') || 'Away'}
             onPress={() => router.push(`/league/${id}/event/${nextMatch.id}`)}
           />
         </View>

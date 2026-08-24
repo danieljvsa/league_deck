@@ -50,7 +50,7 @@ export class TheSportsDBAdapter implements ProviderAdapter {
   id = 'thesportsdb';
   name = 'TheSportsDB';
 
-  async fetchParticipants(leagueId: string): Promise<Participant[]> {
+  async fetchParticipants(leagueId: string, _season?: string): Promise<Participant[]> {
     const result = await fetchJson<TheSportsDBResponse>(
       `${BASE_URL}/lookup_all_teams.php?id=${leagueId}`
     );
@@ -67,10 +67,13 @@ export class TheSportsDBAdapter implements ProviderAdapter {
     }));
   }
 
-  async fetchEvents(leagueId: string): Promise<Event[]> {
-    const result = await fetchJson<TheSportsDBResponse>(
-      `${BASE_URL}/eventsseason.php?id=${leagueId}`
-    );
+  async fetchEvents(leagueId: string, season?: string): Promise<Event[]> {
+    let url = `${BASE_URL}/eventsseason.php?id=${leagueId}`;
+    if (season) {
+      url += `&s=${season}`;
+    }
+
+    const result = await fetchJson<TheSportsDBResponse>(url);
 
     if (!result.success || !result.data?.events) return [];
 
@@ -78,6 +81,7 @@ export class TheSportsDBAdapter implements ProviderAdapter {
       id: event.idEvent,
       name: event.strEvent,
       competitionId: leagueId,
+      seasonId: season || undefined,
       date: event.strDate,
       time: event.strTime,
       status: normalizeEventStatus(event.strStatus),
@@ -91,17 +95,20 @@ export class TheSportsDBAdapter implements ProviderAdapter {
     }));
   }
 
-  async fetchStandings(leagueId: string): Promise<Standing[]> {
-    const result = await fetchJson<TheSportsDBResponse>(
-      `${BASE_URL}/lookuptable.php?l=${leagueId}`
-    );
+  async fetchStandings(leagueId: string, season?: string): Promise<Standing[]> {
+    let url = `${BASE_URL}/lookuptable.php?l=${leagueId}`;
+    if (season) {
+      url += `&s=${season}`;
+    }
+
+    const result = await fetchJson<TheSportsDBResponse>(url);
 
     if (!result.success || !result.data?.table) return [];
 
     return [{
-      id: `standings-${leagueId}`,
+      id: `standings-${leagueId}${season ? `-${season}` : ''}`,
       competitionId: leagueId,
-      seasonId: '',
+      seasonId: season || '',
       type: 'table',
       entries: result.data.table.map((row) => ({
         position: parseInt(row.intRank, 10),

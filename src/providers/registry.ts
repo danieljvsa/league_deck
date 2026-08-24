@@ -7,7 +7,6 @@ import { SportScoreAdapter } from './sportscore/adapter';
 const providerRegistry = new Map<string, () => ProviderAdapter>();
 
 providerRegistry.set('thesportsdb', () => new TheSportsDBAdapter());
-providerRegistry.set('thesportsdb-v1', () => new TheSportsDBAdapter());
 providerRegistry.set('static-json', () => new StaticJsonAdapter());
 providerRegistry.set('sportscore', () => new SportScoreAdapter());
 providerRegistry.set('generic-rest', () => new StaticJsonAdapter());

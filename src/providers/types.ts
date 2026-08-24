@@ -5,10 +5,10 @@ export interface ProviderAdapter {
   id: string;
   name: string;
   
-  fetchParticipants?(leagueId: string): Promise<Participant[]>;
-  fetchEvents?(leagueId: string): Promise<Event[]>;
-  fetchStandings?(leagueId: string): Promise<Standing[]>;
-  fetchRankings?(leagueId: string): Promise<Ranking[]>;
+  fetchParticipants?(leagueId: string, season?: string): Promise<Participant[]>;
+  fetchEvents?(leagueId: string, season?: string): Promise<Event[]>;
+  fetchStandings?(leagueId: string, season?: string): Promise<Standing[]>;
+  fetchRankings?(leagueId: string, season?: string): Promise<Ranking[]>;
   fetchEvent?(eventId: string): Promise<Event | null>;
   fetchTimeline?(eventId: string): Promise<TimelineEvent[]>;
   
@@ -98,6 +98,7 @@ export function normalizeEvent(data: {
   id: string;
   name: string;
   competitionId: string;
+  seasonId?: string;
   date: string;
   time?: string;
   status: string;
@@ -112,6 +113,7 @@ export function normalizeEvent(data: {
     id: data.id,
     name: data.name,
     competitionId: data.competitionId,
+    seasonId: data.seasonId,
     date: data.date,
     time: data.time,
     status: normalizeEventStatus(data.status),
