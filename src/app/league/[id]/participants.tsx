@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { 
   View, Text, FlatList, TextInput, TouchableOpacity, 
   StyleSheet, RefreshControl 
@@ -13,6 +13,8 @@ import { useColors } from '@/constants/theme';
 
 type SortType = 'name' | 'country' | 'sport';
 
+const PARTICIPANT_CARD_HEIGHT = 72;
+
 export default function ParticipantsScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const { getLeague } = useLeagueStore();
@@ -25,16 +27,9 @@ export default function ParticipantsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [sortBy, setSortBy] = useState<SortType>('name');
+  const loadDataRef = useRef<(() => Promise<void>) | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-    loadData().then(() => {
-      if (cancelled) return;
-    });
-    return () => { cancelled = true; };
-  }, [id]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!league) return;
 
     setIsLoading(true);
@@ -60,11 +55,23 @@ export default function ParticipantsScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [league]);
+
+  useEffect(() => {
+    loadDataRef.current = loadData;
+  }, [loadData]);
+
+  useEffect(() => {
+    let cancelled = false;
+    loadDataRef.current?.().then(() => {
+      if (cancelled) return;
+    });
+    return () => { cancelled = true; };
+  }, [id]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadData();
+    await loadDataRef.current?.();
     setRefreshing(false);
   }, []);
 
@@ -99,6 +106,40 @@ export default function ParticipantsScreen() {
     return Array.from(countries).sort();
   }, [participants]);
 
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery('');
+  }, []);
+
+  const handleSortName = useCallback(() => setSortBy('name'), []);
+  const handleSortCountry = useCallback(() => setSortBy('country'), []);
+  const handleSortSport = useCallback(() => setSortBy('sport'), []);
+
+  const keyExtractor = useCallback((item: Participant) => item.id, []);
+
+  const renderItem = useCallback(({ item }: { item: Participant }) => (
+    <ParticipantCard participant={item} />
+  ), []);
+
+  const getItemLayout = useCallback((_data: ArrayLike<Participant> | null | undefined, index: number) => ({
+    length: PARTICIPANT_CARD_HEIGHT,
+    offset: PARTICIPANT_CARD_HEIGHT * index,
+    index,
+  }), []);
+
+  const listHeader = useMemo(() => (
+    <Text style={[styles.resultCount, { color: colors.textSecondary }]}>
+      {filteredAndSorted.length} team{filteredAndSorted.length !== 1 ? 's' : ''}
+    </Text>
+  ), [filteredAndSorted.length, colors.textSecondary]);
+
+  const listEmpty = useMemo(() => (
+    <View style={styles.emptySearchContainer}>
+      <Text style={[styles.emptySearchText, { color: colors.textSecondary }]}>
+        No teams matching "{searchQuery}"
+      </Text>
+    </View>
+  ), [searchQuery, colors.textSecondary]);
+
   if (isLoading && !refreshing) {
     return <Loading message="Loading participants..." />;
   }
@@ -128,7 +169,7 @@ export default function ParticipantsScreen() {
         {searchQuery.length > 0 && (
           <TouchableOpacity 
             style={styles.clearButton}
-            onPress={() => setSearchQuery('')}
+            onPress={handleClearSearch}
           >
             <Text style={[styles.clearText, { color: colors.textMuted }]}>✕</Text>
           </TouchableOpacity>
@@ -138,7 +179,7 @@ export default function ParticipantsScreen() {
       <View style={styles.sortContainer}>
         <TouchableOpacity
           style={[styles.sortButton, { backgroundColor: sortBy === 'name' ? colors.primary : colors.surface }]}
-          onPress={() => setSortBy('name')}
+          onPress={handleSortName}
         >
           <Text style={[styles.sortText, { color: sortBy === 'name' ? '#FFF' : colors.textSecondary }]}>
             Name
@@ -147,7 +188,7 @@ export default function ParticipantsScreen() {
         {uniqueCountries.length > 0 && (
           <TouchableOpacity
             style={[styles.sortButton, { backgroundColor: sortBy === 'country' ? colors.primary : colors.surface }]}
-            onPress={() => setSortBy('country')}
+            onPress={handleSortCountry}
           >
             <Text style={[styles.sortText, { color: sortBy === 'country' ? '#FFF' : colors.textSecondary }]}>
               Country
@@ -156,7 +197,7 @@ export default function ParticipantsScreen() {
         )}
         <TouchableOpacity
           style={[styles.sortButton, { backgroundColor: sortBy === 'sport' ? colors.primary : colors.surface }]}
-          onPress={() => setSortBy('sport')}
+          onPress={handleSortSport}
         >
           <Text style={[styles.sortText, { color: sortBy === 'sport' ? '#FFF' : colors.textSecondary }]}>
             Sport
@@ -166,10 +207,9 @@ export default function ParticipantsScreen() {
 
       <FlatList
         data={filteredAndSorted}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ParticipantCard participant={item} />
-        )}
+        keyExtractor={keyExtractor}
+        renderItem={renderItem}
+        getItemLayout={getItemLayout}
         contentContainerStyle={styles.list}
         refreshControl={
           <RefreshControl
@@ -178,18 +218,8 @@ export default function ParticipantsScreen() {
             tintColor={colors.primary}
           />
         }
-        ListHeaderComponent={
-          <Text style={[styles.resultCount, { color: colors.textSecondary }]}>
-            {filteredAndSorted.length} team{filteredAndSorted.length !== 1 ? 's' : ''}
-          </Text>
-        }
-        ListEmptyComponent={
-          <View style={styles.emptySearchContainer}>
-            <Text style={[styles.emptySearchText, { color: colors.textSecondary }]}>
-              No teams matching "{searchQuery}"
-            </Text>
-          </View>
-        }
+        ListHeaderComponent={listHeader}
+        ListEmptyComponent={listEmpty}
         removeClippedSubviews={true}
         maxToRenderPerBatch={15}
         windowSize={5}

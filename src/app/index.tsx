@@ -1,81 +1,19 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { 
-  View, Text, FlatList, TouchableOpacity, StyleSheet, Image, 
+  View, Text, FlatList, TouchableOpacity, StyleSheet, 
   RefreshControl, Alert 
 } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useLeagueStore } from '@/store/leagues';
 import { Loading, Error, Empty } from '@/components/ui';
-import { Capability } from '@/domain';
 import { InstalledLeague } from '@/core/storage/packages';
 import { useColors } from '@/constants/theme';
 import { useBreakpoint, useResponsiveColumns } from '@/hooks/use-breakpoint';
+import { LeagueCard } from '@/components/LeagueCard';
 
-interface LeagueCardProps {
-  league: InstalledLeague;
-  onPress: () => void;
-  onLongPress: () => void;
-  colors: ReturnType<typeof useColors>;
-}
-
-const LeagueCard = React.memo(function LeagueCard({ league, onPress, onLongPress, colors }: LeagueCardProps) {
-  const { package: pkg, capabilities, lastUpdated } = league;
-  const liveCount = capabilities.filter(c => c.id === 'live' && c.enabled && c.available).length;
-  const enabledCount = capabilities.filter(c => c.enabled && c.available).length;
-  
-  const formatLastUpdated = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const now = new Date();
-    const diffMs = now.getTime() - date.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins}m ago`;
-    const diffHours = Math.floor(diffMins / 60);
-    if (diffHours < 24) return `${diffHours}h ago`;
-    return `${Math.floor(diffHours / 24)}d ago`;
-  };
-
-  return (
-    <TouchableOpacity 
-      style={[styles.card, { backgroundColor: colors.surface }]}
-      onPress={onPress}
-      onLongPress={onLongPress}
-      activeOpacity={0.7}
-    >
-      {pkg.branding?.logo ? (
-        <Image source={{ uri: pkg.branding.logo }} style={styles.logo} />
-      ) : (
-        <View style={[styles.logo, styles.logoPlaceholder, { backgroundColor: pkg.branding?.primaryColor || colors.muted }]}>
-          <Text style={[styles.logoText, { color: pkg.branding?.primaryColor ? '#FFF' : colors.textSecondary }]}>
-            {pkg.league.name.charAt(0)}
-          </Text>
-        </View>
-      )}
-      <View style={styles.cardContent}>
-        <View style={styles.cardHeader}>
-          <Text style={[styles.cardTitle, { color: colors.text }]} numberOfLines={1}>{pkg.league.name}</Text>
-          {liveCount > 0 && (
-            <View style={[styles.liveBadge, { backgroundColor: colors.live }]}>
-              <View style={[styles.liveDot, { backgroundColor: '#FFF' }]} />
-              <Text style={[styles.liveText, { color: '#FFF' }]}>LIVE</Text>
-            </View>
-          )}
-        </View>
-        <Text style={[styles.cardSubtitle, { color: colors.textSecondary }]} numberOfLines={1}>
-          {pkg.league.sport.charAt(0).toUpperCase() + pkg.league.sport.slice(1)}
-          {pkg.league.country ? ` · ${pkg.league.country}` : ''}
-        </Text>
-        <View style={styles.cardFooter}>
-          <Text style={[styles.featureCount, { color: colors.primary }]}>{enabledCount} features</Text>
-          <Text style={[styles.lastUpdated, { color: colors.textMuted }]}>Updated {formatLastUpdated(lastUpdated)}</Text>
-        </View>
-      </View>
-      <Text style={[styles.chevron, { color: colors.disabled }]}>›</Text>
-    </TouchableOpacity>
-  );
-});
+const LEAGUE_CARD_HEIGHT = 88;
 
 export default function MyLeaguesScreen() {
   const { leagues, isLoading, error, loadLeagues, removeLeague } = useLeagueStore();
@@ -95,22 +33,7 @@ export default function MyLeaguesScreen() {
     setRefreshing(false);
   }, [loadLeagues]);
 
-  const handleLongPress = (league: InstalledLeague) => {
-    Alert.alert(
-      league.package.league.name,
-      'What would you like to do?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { 
-          text: 'Remove', 
-          style: 'destructive',
-          onPress: () => confirmRemove(league)
-        },
-      ]
-    );
-  };
-
-  const confirmRemove = (league: InstalledLeague) => {
+  const confirmRemove = useCallback((league: InstalledLeague) => {
     Alert.alert(
       'Remove League',
       `Are you sure you want to remove ${league.package.league.name}?`,
@@ -123,7 +46,61 @@ export default function MyLeaguesScreen() {
         },
       ]
     );
-  };
+  }, [removeLeague]);
+
+  const handleLongPress = useCallback((league: InstalledLeague) => {
+    Alert.alert(
+      league.package.league.name,
+      'What would you like to do?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Remove', 
+          style: 'destructive',
+          onPress: () => confirmRemove(league)
+        },
+      ]
+    );
+  }, [confirmRemove]);
+
+  const handleNavigateToAdd = useCallback(() => {
+    router.push('/add-league');
+  }, []);
+
+  const keyExtractor = useCallback((item: InstalledLeague) => item.id, []);
+
+  const renderItem = useCallback(({ item }: { item: InstalledLeague }) => (
+    <LeagueCard
+      league={item}
+      onPress={() => router.push(`/league/${item.id}`)}
+      onLongPress={() => handleLongPress(item)}
+    />
+  ), [handleLongPress]);
+
+  const getItemLayout = useCallback((_data: ArrayLike<InstalledLeague> | null | undefined, index: number) => ({
+    length: LEAGUE_CARD_HEIGHT,
+    offset: LEAGUE_CARD_HEIGHT * index,
+    index,
+  }), []);
+
+  const contentContainerStyle = useMemo(() => 
+    [styles.list, { paddingBottom: insets.bottom + 80 }], 
+    [insets.bottom]
+  );
+
+  const listHeader = useMemo(() => (
+    <View style={styles.header}>
+      <Text style={[styles.headerTitle, { color: colors.text }]}>My Leagues</Text>
+      <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
+        {leagues.length} {leagues.length === 1 ? 'league' : 'leagues'} installed
+      </Text>
+    </View>
+  ), [leagues.length, colors.text, colors.textSecondary]);
+
+  const fabStyle = useMemo(() => 
+    StyleSheet.flatten([styles.fab, { backgroundColor: colors.primary, shadowColor: colors.primary, bottom: insets.bottom + 20 }]),
+    [colors.primary, insets.bottom]
+  );
 
   if (isLoading && !refreshing) {
     return <Loading message="Loading leagues..." />;
@@ -139,7 +116,7 @@ export default function MyLeaguesScreen() {
         <Empty
           message="No leagues installed yet"
           actionLabel="Add Your First League"
-          onAction={() => router.push('/add-league')}
+          onAction={handleNavigateToAdd}
         />
       </View>
     );
@@ -149,18 +126,12 @@ export default function MyLeaguesScreen() {
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <FlatList
         data={leagues}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
         numColumns={numColumns}
         key={`leagues-${numColumns}`}
-        renderItem={({ item }) => (
-          <LeagueCard
-            league={item}
-            onPress={() => router.push(`/league/${item.id}`)}
-            onLongPress={() => handleLongPress(item)}
-            colors={colors}
-          />
-        )}
-        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 80 }]}
+        renderItem={renderItem}
+        getItemLayout={getItemLayout}
+        contentContainerStyle={contentContainerStyle}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -168,17 +139,15 @@ export default function MyLeaguesScreen() {
             tintColor={colors.primary}
           />
         }
-        ListHeaderComponent={
-          <Text style={[styles.headerTitle, { color: colors.text }]}>My Leagues</Text>
-        }
+        ListHeaderComponent={listHeader}
         removeClippedSubviews={true}
         maxToRenderPerBatch={10}
         windowSize={5}
         initialNumToRender={8}
       />
       <Link href="/add-league" asChild>
-        <TouchableOpacity style={[styles.fab, { backgroundColor: colors.primary, shadowColor: colors.primary, bottom: insets.bottom + 20 }]}>
-          <Text style={[styles.fabText, { color: '#FFF' }]}>+</Text>
+        <TouchableOpacity style={fabStyle}>
+          <Ionicons name="add" size={28} color="#FFF" />
         </TouchableOpacity>
       </Link>
     </View>
@@ -195,89 +164,17 @@ const styles = StyleSheet.create({
   list: {
     padding: 16,
   },
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: '700',
+  header: {
     marginBottom: 20,
-    letterSpacing: -0.3,
   },
-  card: {
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    marginHorizontal: 6,
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  logo: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    marginRight: 14,
-  },
-  logoPlaceholder: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  logoText: {
-    fontSize: 24,
+  headerTitle: {
+    fontSize: 32,
     fontWeight: '700',
+    letterSpacing: -0.5,
   },
-  cardContent: {
-    flex: 1,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 4,
-  },
-  cardTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    flex: 1,
-  },
-  liveBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 10,
-    marginLeft: 8,
-  },
-  liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 4,
-  },
-  liveText: {
-    fontSize: 11,
-    fontWeight: '700',
-  },
-  cardSubtitle: {
-    fontSize: 14,
-    marginBottom: 6,
-  },
-  cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  featureCount: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  lastUpdated: {
-    fontSize: 12,
-  },
-  chevron: {
-    fontSize: 24,
-    marginLeft: 8,
+  headerSubtitle: {
+    fontSize: 15,
+    marginTop: 4,
   },
   fab: {
     position: 'absolute',
@@ -292,9 +189,5 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
-  },
-  fabText: {
-    fontSize: 28,
-    lineHeight: 30,
   },
 });

@@ -1,5 +1,5 @@
 import { LeaguePackage } from './schema';
-import { parsePackage, fetchPackage } from './parser';
+import { parsePackage, fetchPackage, parsePackageFromString } from './parser';
 import { validatePackage } from './validator';
 import { installPackage as dbInstallPackage, updatePackageCapabilities } from '../storage/packages';
 import { deriveCapabilities } from '../capabilities/derive';
@@ -21,6 +21,26 @@ export async function installFromUrl(url: string): Promise<InstallResult> {
   }
 
   return installLeaguePackage(fetchResult.package, url);
+}
+
+export async function installFromJsonString(jsonString: string): Promise<InstallResult> {
+  const result = parsePackageFromString(jsonString);
+  
+  if (!result.success || !result.package) {
+    return {
+      success: false,
+      errors: result.errors || ['Failed to parse JSON'],
+    };
+  }
+
+  return installLeaguePackage(result.package);
+}
+
+export async function installFromLocalFile(
+  pkg: LeaguePackage, 
+  filePath: string
+): Promise<InstallResult> {
+  return installLeaguePackage(pkg, filePath);
 }
 
 export async function installLeaguePackage(

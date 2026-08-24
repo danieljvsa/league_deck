@@ -70,3 +70,15 @@ export function parsePackage(data: unknown): ParseResult {
     validationResult,
   };
 }
+
+export function parsePackageFromString(jsonString: string): ParseResult {
+  try {
+    const data = JSON.parse(jsonString);
+    return parsePackage(data);
+  } catch (error) {
+    return {
+      success: false,
+      errors: ['Invalid JSON format. Please check your JSON syntax.'],
+    };
+  }
+}

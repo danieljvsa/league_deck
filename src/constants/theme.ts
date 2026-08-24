@@ -4,13 +4,16 @@ export interface ThemeColorSet {
   text: string;
   textSecondary: string;
   textMuted: string;
+  textTertiary: string;
   background: string;
   surface: string;
   surfaceElevated: string;
   border: string;
   borderLight: string;
+  borderFocus: string;
   primary: string;
   primaryLight: string;
+  primaryHover: string;
   danger: string;
   dangerLight: string;
   success: string;
@@ -24,58 +27,91 @@ export interface ThemeColorSet {
   muted: string;
   disabled: string;
   shadow: string;
+  overlay: string;
+  skeleton: string;
+  accent: string;
+  accentLight: string;
+  cardBorder: string;
+  cardHighlight: string;
+  championsLeague: string;
+  europaLeague: string;
+  conferenceLeague: string;
 }
 
 export const Colors = {
   light: {
-    text: '#1C1C1E',
-    textSecondary: '#636366',
-    textMuted: '#8E8E93',
-    background: '#F2F2F7',
+    text: '#1A1528',
+    textSecondary: '#5C5470',
+    textMuted: '#706A8A',
+    textTertiary: '#B0A8C4',
+    background: '#F8F7FC',
     surface: '#FFFFFF',
     surfaceElevated: '#FFFFFF',
-    border: '#D1D1D6',
-    borderLight: '#E5E5EA',
-    primary: '#007AFF',
-    primaryLight: '#E8F4FD',
-    danger: '#FF3B30',
-    dangerLight: '#FFE5E5',
-    success: '#34C759',
-    successLight: '#E8F8ED',
-    warning: '#FF9500',
-    warningLight: '#FFF3E0',
-    live: '#FF3B30',
-    liveLight: '#FFE5E5',
-    info: '#007AFF',
-    infoLight: '#E8F4FD',
-    muted: '#F2F2F7',
-    disabled: '#C7C7CC',
-    shadow: '#000000',
+    border: '#DDD8EC',
+    borderLight: '#EDEBF4',
+    borderFocus: '#7C3AED',
+    primary: '#7C3AED',
+    primaryLight: '#7C3AED12',
+    primaryHover: '#6D28D9',
+    danger: '#DC2626',
+    dangerLight: '#DC262612',
+    success: '#16A34A',
+    successLight: '#16A34A12',
+    warning: '#D97706',
+    warningLight: '#D9770612',
+    live: '#16A34A',
+    liveLight: '#16A34A12',
+    info: '#2563EB',
+    infoLight: '#2563EB12',
+    muted: '#F0EDF6',
+    disabled: '#C4BFD4',
+    shadow: '#1A1528',
+    overlay: '#1A152840',
+    skeleton: '#E2DFF0',
+    accent: '#7C3AED',
+    accentLight: '#7C3AED12',
+    cardBorder: '#DDD8EC',
+    cardHighlight: '#F0ECF8',
+    championsLeague: '#7C3AED',
+    europaLeague: '#D97706',
+    conferenceLeague: '#16A34A',
   },
   dark: {
-    text: '#F5F5F7',
-    textSecondary: '#AEAEB2',
-    textMuted: '#636366',
-    background: '#000000',
-    surface: '#1C1C1E',
-    surfaceElevated: '#2C2C2E',
-    border: '#38383A',
-    borderLight: '#48484A',
-    primary: '#0A84FF',
-    primaryLight: '#0A84FF20',
-    danger: '#FF453A',
-    dangerLight: '#FF453A20',
-    success: '#30D158',
-    successLight: '#30D15820',
-    warning: '#FF9F0A',
-    warningLight: '#FF9F0A20',
-    live: '#FF453A',
-    liveLight: '#FF453A20',
-    info: '#0A84FF',
-    infoLight: '#0A84FF20',
-    muted: '#2C2C2E',
-    disabled: '#48484A',
+    text: '#F5F3FF',
+    textSecondary: '#B0A8C4',
+    textMuted: '#8780A0',
+    textTertiary: '#5C5470',
+    background: '#0D0B1A',
+    surface: '#16132A',
+    surfaceElevated: '#1E1A33',
+    border: '#2D2847',
+    borderLight: '#231F38',
+    borderFocus: '#A78BFA',
+    primary: '#A78BFA',
+    primaryLight: '#A78BFA18',
+    primaryHover: '#C4B5FD',
+    danger: '#F87171',
+    dangerLight: '#F8717118',
+    success: '#4ADE80',
+    successLight: '#4ADE8018',
+    warning: '#FBBF24',
+    warningLight: '#FBBF2418',
+    live: '#4ADE80',
+    liveLight: '#4ADE8018',
+    info: '#60A5FA',
+    infoLight: '#60A5FA18',
+    muted: '#12101F',
+    disabled: '#3D3855',
     shadow: '#000000',
+    overlay: '#00000060',
+    skeleton: '#231F38',
+    accent: '#A78BFA',
+    accentLight: '#A78BFA18',
+    cardBorder: '#2D2847',
+    cardHighlight: '#1E1A33',
+    championsLeague: '#A78BFA',
+    europaLeague: '#FBBF24',
+    conferenceLeague: '#4ADE80',
   },
 };
 

@@ -11,11 +11,49 @@ const CACHE_TTL = {
   standings: 15 * 60 * 1000, // 15 minutes
 };
 
+const FETCH_TIMEOUT_MS = 15000; // 15 seconds
+const MAX_RETRIES = 2;
+const RETRY_DELAY_MS = 1000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => 
+      setTimeout(() => reject(new Error(`Request timed out after ${ms / 1000}s`)), ms)
+    ),
+  ]);
+}
+
+function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function fetchWithRetry<T>(
+  fn: () => Promise<T>,
+  retries: number = MAX_RETRIES
+): Promise<T> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await withTimeout(fn(), FETCH_TIMEOUT_MS);
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      
+      if (attempt < retries) {
+        await delay(RETRY_DELAY_MS * (attempt + 1));
+      }
+    }
+  }
+  
+  throw lastError;
+}
+
 export class ProviderService {
   private adapters = new Map<string, ProviderAdapter>();
 
   private getAdapter(config: ProviderConfig): ProviderAdapter | null {
-    const cacheKey = `${config.type}-${config.leagueId || config.source || ''}`;
+    const cacheKey = `${config.type}-${config.leagueId || config.source || 'default'}`;
     
     if (this.adapters.has(cacheKey)) {
       return this.adapters.get(cacheKey)!;
@@ -35,20 +73,29 @@ export class ProviderService {
     const adapter = this.getAdapter(config);
     if (!adapter?.fetchParticipants) return [];
 
-    const cacheKey = `participants-${config.leagueId || config.source}`;
-    const cached = await getCachedData<Participant[]>(packageId, adapter.id, cacheKey);
-    if (cached) return cached;
+    const cacheKey = `participants-${config.leagueId || config.source || 'default'}`;
 
-    let participants: Participant[];
-    
-    if (config.type === 'static-json' && config.source) {
-      participants = await adapter.fetchParticipants(config.source);
-    } else {
-      participants = await adapter.fetchParticipants(config.leagueId || '');
+    try {
+      const cached = await getCachedData<Participant[]>(packageId, adapter.id, cacheKey);
+      if (cached) return cached;
+
+      let participants: Participant[];
+      
+      if (config.type === 'static-json' && config.source) {
+        participants = await fetchWithRetry(() => adapter.fetchParticipants!(config.source!));
+      } else {
+        participants = await fetchWithRetry(() => adapter.fetchParticipants!(config.leagueId || ''));
+      }
+
+      if (Array.isArray(participants)) {
+        await setCachedData(packageId, adapter.id, cacheKey, participants, CACHE_TTL.participants);
+        return participants;
+      }
+      return [];
+    } catch (error) {
+      if (__DEV__) console.warn('Failed to fetch participants:', error);
+      return [];
     }
-
-    await setCachedData(packageId, adapter.id, cacheKey, participants, CACHE_TTL.participants);
-    return participants;
   }
 
   async fetchEvents(
@@ -58,20 +105,29 @@ export class ProviderService {
     const adapter = this.getAdapter(config);
     if (!adapter?.fetchEvents) return [];
 
-    const cacheKey = `events-${config.leagueId || config.source}`;
-    const cached = await getCachedData<Event[]>(packageId, adapter.id, cacheKey);
-    if (cached) return cached;
+    const cacheKey = `events-${config.leagueId || config.source || 'default'}`;
 
-    let events: Event[];
-    
-    if (config.type === 'static-json' && config.source) {
-      events = await adapter.fetchEvents(config.source);
-    } else {
-      events = await adapter.fetchEvents(config.leagueId || '');
+    try {
+      const cached = await getCachedData<Event[]>(packageId, adapter.id, cacheKey);
+      if (cached) return cached;
+
+      let events: Event[];
+      
+      if (config.type === 'static-json' && config.source) {
+        events = await fetchWithRetry(() => adapter.fetchEvents!(config.source!));
+      } else {
+        events = await fetchWithRetry(() => adapter.fetchEvents!(config.leagueId || ''));
+      }
+
+      if (Array.isArray(events)) {
+        await setCachedData(packageId, adapter.id, cacheKey, events, CACHE_TTL.events);
+        return events;
+      }
+      return [];
+    } catch (error) {
+      if (__DEV__) console.warn('Failed to fetch events:', error);
+      return [];
     }
-
-    await setCachedData(packageId, adapter.id, cacheKey, events, CACHE_TTL.events);
-    return events;
   }
 
   async fetchStandings(
@@ -81,24 +137,37 @@ export class ProviderService {
     const adapter = this.getAdapter(config);
     if (!adapter?.fetchStandings) return [];
 
-    const cacheKey = `standings-${config.leagueId}`;
-    const cached = await getCachedData<Standing[]>(packageId, adapter.id, cacheKey);
-    if (cached) return cached;
+    const cacheKey = `standings-${config.leagueId || 'default'}`;
 
-    const standings = await adapter.fetchStandings(config.leagueId || '');
-    await setCachedData(packageId, adapter.id, cacheKey, standings, CACHE_TTL.standings);
-    return standings;
+    try {
+      const cached = await getCachedData<Standing[]>(packageId, adapter.id, cacheKey);
+      if (cached) return cached;
+
+      const standings = await fetchWithRetry(() => adapter.fetchStandings!(config.leagueId || ''));
+      
+      if (Array.isArray(standings)) {
+        await setCachedData(packageId, adapter.id, cacheKey, standings, CACHE_TTL.standings);
+        return standings;
+      }
+      return [];
+    } catch (error) {
+      if (__DEV__) console.warn('Failed to fetch standings:', error);
+      return [];
+    }
   }
 
   async checkProviderAvailability(config: ProviderConfig): Promise<boolean> {
     const adapter = this.getAdapter(config);
     if (!adapter) return false;
 
-    if (adapter.isAvailable) {
-      return adapter.isAvailable();
+    try {
+      if (adapter.isAvailable) {
+        return await withTimeout(adapter.isAvailable(), 5000);
+      }
+      return true;
+    } catch {
+      return false;
     }
-
-    return true;
   }
 
   async getProviderAttribution(config: ProviderConfig): Promise<string | undefined> {
@@ -112,8 +181,12 @@ export class ProviderService {
   }
 
   async hasApiKey(providerType: string): Promise<boolean> {
-    const key = await getApiKey(providerType);
-    return key !== null;
+    try {
+      const key = await getApiKey(providerType);
+      return key !== null;
+    } catch {
+      return false;
+    }
   }
 }
 

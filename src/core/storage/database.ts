@@ -1,16 +1,16 @@
-import * as SQLite from 'expo-sqlite';
+import { openDatabaseAsync, SQLiteDatabase } from 'expo-sqlite';
 
-let db: SQLite.SQLiteDatabase | null = null;
+let db: SQLiteDatabase | null = null;
 
-export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
+export async function getDatabase(): Promise<SQLiteDatabase> {
   if (db) return db;
   
-  db = await SQLite.openDatabaseAsync('openleague.db');
+  db = await openDatabaseAsync('openleague.db');
   await initializeDatabase(db);
   return db;
 }
 
-async function initializeDatabase(database: SQLite.SQLiteDatabase): Promise<void> {
+async function initializeDatabase(database: SQLiteDatabase): Promise<void> {
   await database.execAsync(`
     PRAGMA journal_mode = WAL;
 

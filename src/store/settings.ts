@@ -24,7 +24,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
       const settings = await getSettings();
       set({ settings, isLoading: false });
     } catch (error) {
-      console.error('Failed to load settings:', error);
+      if (__DEV__) console.error('Failed to load settings:', error);
       set({ isLoading: false });
     }
   },

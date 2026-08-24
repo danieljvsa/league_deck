@@ -1,33 +1,32 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useColorScheme, Text, ColorValue } from 'react-native';
+import { preventAutoHideAsync } from 'expo-splash-screen';
+import { useColorScheme } from 'react-native';
+import { useMemo } from 'react';
 import { Tabs } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { DatabaseProvider } from '@/components/DatabaseProvider';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { useColors } from '@/constants/theme';
 
-SplashScreen.preventAutoHideAsync();
-
-function TabBarIcon({ name, color, size }: { name: string; color: ColorValue; size: number }) {
-  const icons: Record<string, string> = {
-    trophy: '🏆',
-    'plus-circle': '➕',
-    settings: '⚙️',
-  };
-  
-  return (
-    <Text style={{ fontSize: size - 4 }}>
-      {icons[name] || '📌'}
-    </Text>
-  );
-}
+preventAutoHideAsync();
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const colors = useColors();
+
+  const screenOptions = useMemo(() => ({
+    tabBarActiveTintColor: colors.primary,
+    tabBarInactiveTintColor: colors.textMuted,
+    headerStyle: { backgroundColor: colors.background },
+    headerTitleStyle: { fontWeight: '600' as const, color: colors.text },
+    tabBarStyle: {
+      backgroundColor: colors.surface,
+      borderTopColor: colors.cardBorder,
+    },
+  }), [colors]);
   
   return (
     <SafeAreaProvider>
@@ -35,21 +34,14 @@ export default function TabLayout() {
         <DatabaseProvider>
           <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
             <AnimatedSplashOverlay />
-            <Tabs
-              screenOptions={{
-                tabBarActiveTintColor: colors.primary,
-                tabBarInactiveTintColor: colors.textMuted,
-                headerStyle: { backgroundColor: colors.background },
-                headerTitleStyle: { fontWeight: '600', color: colors.text },
-              }}
-            >
+            <Tabs screenOptions={screenOptions}>
               <Tabs.Screen
                 name="index"
                 options={{
                   title: 'My Leagues',
                   headerTitle: 'OpenLeague',
                   tabBarIcon: ({ color, size }) => (
-                    <TabBarIcon name="trophy" color={color} size={size} />
+                    <Ionicons name="trophy-outline" size={size} color={color} />
                   ),
                 }}
               />
@@ -58,7 +50,7 @@ export default function TabLayout() {
                 options={{
                   title: 'Add League',
                   tabBarIcon: ({ color, size }) => (
-                    <TabBarIcon name="plus-circle" color={color} size={size} />
+                    <Ionicons name="add-circle-outline" size={size} color={color} />
                   ),
                 }}
               />
@@ -67,7 +59,7 @@ export default function TabLayout() {
                 options={{
                   title: 'Settings',
                   tabBarIcon: ({ color, size }) => (
-                    <TabBarIcon name="settings" color={color} size={size} />
+                    <Ionicons name="settings-outline" size={size} color={color} />
                   ),
                 }}
               />

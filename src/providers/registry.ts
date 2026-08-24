@@ -2,11 +2,15 @@ import { ProviderAdapter, ProviderMetadata } from './types';
 import { ProviderConfig } from '../core/package/schema';
 import { TheSportsDBAdapter } from './thesportsdb/adapter';
 import { StaticJsonAdapter } from './static-json/adapter';
+import { SportScoreAdapter } from './sportscore/adapter';
 
 const providerRegistry = new Map<string, () => ProviderAdapter>();
 
 providerRegistry.set('thesportsdb', () => new TheSportsDBAdapter());
+providerRegistry.set('thesportsdb-v1', () => new TheSportsDBAdapter());
 providerRegistry.set('static-json', () => new StaticJsonAdapter());
+providerRegistry.set('sportscore', () => new SportScoreAdapter());
+providerRegistry.set('generic-rest', () => new StaticJsonAdapter());
 
 const providerMetadata: Record<string, ProviderMetadata> = {
   thesportsdb: {
@@ -46,7 +50,7 @@ const providerMetadata: Record<string, ProviderMetadata> = {
 export function createProvider(config: ProviderConfig): ProviderAdapter | null {
   const factory = providerRegistry.get(config.type);
   if (!factory) {
-    console.warn(`Unknown provider type: ${config.type}`);
+    if (__DEV__) console.warn(`Unknown provider type: ${config.type}`);
     return null;
   }
   return factory();

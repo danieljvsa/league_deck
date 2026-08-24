@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { Event, EventStatus } from '@/domain';
 import { useColors } from '@/constants/theme';
 
@@ -74,29 +75,41 @@ export const EventCard = React.memo(function EventCard({ event, homeName, awayNa
   const statusColor = getStatusColor(event.status, colors);
   const isLive = event.status === 'live' || event.status === 'in_play';
   const hasScore = event.score && event.score.home !== null && event.score.away !== null;
+  const statusLabel = getStatusLabel(event.status);
+  const dateLabel = formatDate(event.date, event.time);
+  
+  const scoreText = hasScore ? `${event.score!.home} - ${event.score!.away}` : 'vs';
+  const accessibilityLabel = `${homeName} vs ${awayName}, ${statusLabel}, ${dateLabel}${hasScore ? `, Score: ${scoreText}` : ''}${event.venue ? `, at ${event.venue}` : ''}`;
 
   if (compact) {
     return (
-      <TouchableOpacity style={[styles.compactCard, { backgroundColor: colors.surface }]} onPress={onPress} activeOpacity={0.7}>
+      <TouchableOpacity 
+        style={[styles.compactCard, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]} 
+        onPress={onPress} 
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint="View match details"
+      >
         <View style={styles.compactHeader}>
-          <Text style={[styles.compactDate, { color: colors.textSecondary }]}>{formatDate(event.date, event.time)}</Text>
+          <Text style={[styles.compactDate, { color: colors.textSecondary }]} maxFontSizeMultiplier={1.3}>{dateLabel}</Text>
           <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-            {isLive && <View style={[styles.liveIndicator, { backgroundColor: '#FFF' }]} />}
-            <Text style={[styles.statusText, { color: '#FFF' }]}>{getStatusLabel(event.status)}</Text>
+            {isLive && <View style={[styles.liveIndicator, { backgroundColor: colors.text }]} />}
+            <Text style={[styles.statusText, { color: colors.text }]} maxFontSizeMultiplier={1.3}>{statusLabel}</Text>
           </View>
         </View>
         <View style={styles.compactTeams}>
-          <Text style={[styles.compactTeamName, { color: colors.text }, hasScore && styles.teamBold]} numberOfLines={1}>
+          <Text style={[styles.compactTeamName, { color: colors.text }, hasScore && styles.teamBold]} numberOfLines={1} maxFontSizeMultiplier={1.3}>
             {homeName}
           </Text>
           {hasScore ? (
-            <Text style={[styles.compactScore, { color: colors.text }]}>
+            <Text style={[styles.compactScore, { color: colors.text }]} maxFontSizeMultiplier={1.3}>
               {event.score!.home} - {event.score!.away}
             </Text>
           ) : (
-            <Text style={[styles.vs, { color: colors.textMuted }]}>vs</Text>
+            <Text style={[styles.vs, { color: colors.textMuted }]} maxFontSizeMultiplier={1.3}>vs</Text>
           )}
-          <Text style={[styles.compactTeamName, { color: colors.text }, styles.awayTeam, hasScore && styles.teamBold]} numberOfLines={1}>
+          <Text style={[styles.compactTeamName, { color: colors.text }, styles.awayTeam, hasScore && styles.teamBold]} numberOfLines={1} maxFontSizeMultiplier={1.3}>
             {awayName}
           </Text>
         </View>
@@ -105,43 +118,56 @@ export const EventCard = React.memo(function EventCard({ event, homeName, awayNa
   }
 
   return (
-    <TouchableOpacity style={[styles.card, { backgroundColor: colors.surface }]} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity 
+      style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]} 
+      onPress={onPress} 
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint="View match details"
+    >
+      {/* Header with date and status */}
       <View style={styles.header}>
-        <Text style={[styles.date, { color: colors.textSecondary }]}>{formatDate(event.date, event.time)}</Text>
+        <View style={styles.dateContainer}>
+          <Ionicons name="calendar-outline" size={14} color={colors.textSecondary} />
+          <Text style={[styles.date, { color: colors.textSecondary }]} maxFontSizeMultiplier={1.3}>{dateLabel}</Text>
+        </View>
         <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
-          {isLive && <View style={[styles.liveIndicator, { backgroundColor: '#FFF' }]} />}
-          <Text style={[styles.statusText, { color: '#FFF' }]}>{getStatusLabel(event.status)}</Text>
+          {isLive && <View style={[styles.liveIndicator, { backgroundColor: colors.text }]} />}
+          <Text style={[styles.statusText, { color: colors.text }]} maxFontSizeMultiplier={1.3}>{statusLabel}</Text>
         </View>
       </View>
       
+      {/* Teams and Score */}
       <View style={styles.teams}>
         <View style={styles.teamContainer}>
-          <Text style={[styles.teamName, { color: colors.text }]} numberOfLines={1}>{homeName}</Text>
-          <Text style={[styles.teamLabel, { color: colors.textMuted }]}>Home</Text>
+          <Text style={[styles.teamName, { color: colors.text }]} numberOfLines={1} maxFontSizeMultiplier={1.3}>{homeName}</Text>
+          <Text style={[styles.teamLabel, { color: colors.textMuted }]} maxFontSizeMultiplier={1.3}>Home</Text>
         </View>
         
         {hasScore ? (
           <View style={[styles.scoreContainer, { backgroundColor: colors.muted }]}>
-            <Text style={[styles.score, { color: colors.text }]}>{event.score!.home}</Text>
-            <Text style={[styles.scoreDivider, { color: colors.textSecondary }]}>-</Text>
-            <Text style={[styles.score, { color: colors.text }]}>{event.score!.away}</Text>
+            <Text style={[styles.score, { color: colors.text }]} maxFontSizeMultiplier={1.3}>{event.score!.home}</Text>
+            <Text style={[styles.scoreDivider, { color: colors.textSecondary }]} maxFontSizeMultiplier={1.3}>-</Text>
+            <Text style={[styles.score, { color: colors.text }]} maxFontSizeMultiplier={1.3}>{event.score!.away}</Text>
           </View>
         ) : (
           <View style={[styles.vsContainer, { backgroundColor: colors.muted }]}>
-            <Text style={[styles.vsText, { color: colors.textSecondary }]}>VS</Text>
+            <Text style={[styles.vsText, { color: colors.textSecondary }]} maxFontSizeMultiplier={1.3}>VS</Text>
           </View>
         )}
         
         <View style={styles.teamContainer}>
-          <Text style={[styles.teamName, { color: colors.text }, styles.awayTeamName]} numberOfLines={1}>{awayName}</Text>
-          <Text style={[styles.teamLabel, { color: colors.textMuted }]}>Away</Text>
+          <Text style={[styles.teamName, { color: colors.text }, styles.awayTeamName]} numberOfLines={1} maxFontSizeMultiplier={1.3}>{awayName}</Text>
+          <Text style={[styles.teamLabel, { color: colors.textMuted }]} maxFontSizeMultiplier={1.3}>Away</Text>
         </View>
       </View>
 
+      {/* Venue */}
       {event.venue && (
         <View style={[styles.venueContainer, { borderTopColor: colors.borderLight }]}>
-          <Text style={styles.venueIcon}>📍</Text>
-          <Text style={[styles.venueText, { color: colors.textSecondary }]} numberOfLines={1}>{event.venue}</Text>
+          <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
+          <Text style={[styles.venueText, { color: colors.textSecondary }]} numberOfLines={1} maxFontSizeMultiplier={1.3}>{event.venue}</Text>
         </View>
       )}
     </TouchableOpacity>
@@ -150,14 +176,16 @@ export const EventCard = React.memo(function EventCard({ event, homeName, awayNa
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
+    borderWidth: 1,
+    minHeight: 48,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 4,
   },
   header: {
     flexDirection: 'row',
@@ -165,9 +193,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 14,
   },
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   date: {
     fontSize: 13,
     fontWeight: '500',
+    marginLeft: 6,
   },
   statusBadge: {
     flexDirection: 'row',
@@ -175,6 +208,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 10,
+    minHeight: 24,
   },
   liveIndicator: {
     width: 6,
@@ -215,6 +249,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 8,
+    minHeight: 40,
   },
   score: {
     fontSize: 24,
@@ -229,6 +264,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 8,
+    minHeight: 40,
   },
   vsText: {
     fontSize: 14,
@@ -240,19 +276,18 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     borderTopWidth: 1,
   },
-  venueIcon: {
-    fontSize: 12,
-    marginRight: 6,
-  },
   venueText: {
     fontSize: 13,
     flex: 1,
+    marginLeft: 6,
   },
   
   compactCard: {
-    borderRadius: 10,
+    borderRadius: 12,
     padding: 12,
     marginBottom: 8,
+    borderWidth: 1,
+    minHeight: 48,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,

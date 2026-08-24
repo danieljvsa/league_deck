@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { 
-  View, Text, FlatList, TouchableOpacity, StyleSheet, 
-  RefreshControl, ScrollView 
+  View, Text, FlatList, StyleSheet, 
+  RefreshControl 
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,18 +9,19 @@ import { useLeagueStore } from '@/store/leagues';
 import { providerService } from '@/providers/service';
 import { Loading, Error, Empty } from '@/components/ui';
 import { EventCard } from '@/components/EventCard';
+import { FilterTabs, FilterTab } from '@/components/FilterTabs';
 import { Event, EventStatus } from '@/domain';
 import { useColors } from '@/constants/theme';
 import { useResponsiveColumns } from '@/hooks/use-breakpoint';
 
 type FilterType = 'all' | 'live' | 'today' | 'upcoming' | 'results';
 
-const FILTERS: { key: FilterType; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'live', label: 'Live' },
-  { key: 'today', label: 'Today' },
-  { key: 'upcoming', label: 'Upcoming' },
-  { key: 'results', label: 'Results' },
+const FILTERS: FilterTab[] = [
+  { id: 'all', label: 'All' },
+  { id: 'live', label: 'Live' },
+  { id: 'today', label: 'Today' },
+  { id: 'upcoming', label: 'Upcoming' },
+  { id: 'results', label: 'Results' },
 ];
 
 function isToday(dateStr: string): boolean {
@@ -104,7 +105,22 @@ export default function EventsScreen() {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
+  }, [loadData]);
+
+  const handleTabPress = useCallback((tabId: string) => {
+    setActiveFilter(tabId as FilterType);
   }, []);
+
+  const renderItem = useCallback(({ item }: { item: Event }) => (
+    <EventCard
+      event={item}
+      homeName={participants.get(item.homeParticipantId || '') || 'Home'}
+      awayName={participants.get(item.awayParticipantId || '') || 'Away'}
+      compact={activeFilter === 'today'}
+    />
+  ), [participants, activeFilter]);
+
+  const keyExtractor = useCallback((item: Event) => item.id, []);
 
   const filteredEvents = useMemo(() => {
     switch (activeFilter) {
@@ -139,6 +155,13 @@ export default function EventsScreen() {
     return counts;
   }, [events]);
 
+  const availableFilters = useMemo(() => 
+    FILTERS.filter(filter => 
+      filter.id === 'all' || filterCounts[filter.id as FilterType] > 0
+    ),
+    [filterCounts]
+  );
+
   if (isLoading && !refreshing) {
     return <Loading message="Loading events..." />;
   }
@@ -153,52 +176,22 @@ export default function EventsScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <ScrollView 
-        horizontal 
-        showsHorizontalScrollIndicator={false}
-        style={[styles.filterContainer, { backgroundColor: colors.surface, borderBottomColor: colors.borderLight }]}
-        contentContainerStyle={styles.filterContent}
-      >
-        {FILTERS.map(filter => {
-          const count = filterCounts[filter.key];
-          if (filter.key !== 'all' && count === 0) return null;
-          
-          return (
-            <TouchableOpacity
-              key={filter.key}
-              style={[
-                styles.filterButton,
-                { backgroundColor: colors.muted },
-                activeFilter === filter.key && [styles.filterButtonActive, { backgroundColor: colors.primary }]
-              ]}
-              onPress={() => setActiveFilter(filter.key)}
-            >
-              <Text style={[
-                styles.filterText,
-                { color: colors.textSecondary },
-                activeFilter === filter.key && [styles.filterTextActive, { color: '#FFF' }]
-              ]}>
-                {filter.label}
-                {count > 0 && ` (${count})`}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+      {/* Filter Tabs */}
+      <View style={[styles.filterContainer, { backgroundColor: colors.surface, borderBottomColor: colors.cardBorder }]}>
+        <FilterTabs
+          tabs={availableFilters}
+          activeTab={activeFilter}
+          onTabPress={handleTabPress}
+        />
+      </View>
 
+      {/* Events List */}
       <FlatList
         data={filteredEvents}
-        keyExtractor={(item) => item.id}
+        keyExtractor={keyExtractor}
         numColumns={numColumns}
         key={`events-${numColumns}`}
-        renderItem={({ item }) => (
-          <EventCard
-            event={item}
-            homeName={participants.get(item.homeParticipantId || '') || 'Home'}
-            awayName={participants.get(item.awayParticipantId || '') || 'Away'}
-            compact={activeFilter === 'today'}
-          />
-        )}
+        renderItem={renderItem}
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 20 }]}
         refreshControl={
           <RefreshControl
@@ -209,7 +202,7 @@ export default function EventsScreen() {
         }
         ListEmptyComponent={
           <View style={styles.emptyFilterContainer}>
-            <Text style={[styles.emptyFilterText, { color: colors.textSecondary }]}>
+            <Text style={[styles.emptyFilterText, { color: colors.textSecondary }]} maxFontSizeMultiplier={1.3}>
               No {activeFilter} events
             </Text>
           </View>
@@ -228,25 +221,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   filterContainer: {
-    maxHeight: 52,
+    paddingVertical: 12,
     borderBottomWidth: 1,
   },
-  filterContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 8,
-  },
-  filterButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 16,
-  },
-  filterButtonActive: {},
-  filterText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  filterTextActive: {},
   list: {
     padding: 16,
     paddingBottom: 20,

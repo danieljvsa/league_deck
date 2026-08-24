@@ -18,7 +18,7 @@ import { Colors, MaxContentWidth, Spacing } from '@/constants/theme';
 export default function AppTabs() {
   return (
     <Tabs>
-      <TabSlot style={{ height: '100%' }} />
+      <TabSlot style={StyleSheet.flatten({ height: '100%' })} />
       <TabList asChild>
         <CustomTabList>
           <TabTrigger name="home" href="/" asChild>

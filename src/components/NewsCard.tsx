@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Image } from 'expo-image';
+import { Ionicons } from '@expo/vector-icons';
 import { NewsArticle } from '@/domain';
 import { useColors } from '@/constants/theme';
 
@@ -29,51 +30,84 @@ function formatDate(dateStr: string): string {
 
 export const NewsCard = React.memo(function NewsCard({ article, onPress, compact = false }: NewsCardProps) {
   const colors = useColors();
+  const dateLabel = formatDate(article.publishedAt);
+  const accessibilityLabel = `${article.title}, by ${article.author || article.source}, ${dateLabel}`;
 
   if (compact) {
     return (
-      <TouchableOpacity style={[styles.compactCard, { backgroundColor: colors.surface }]} onPress={onPress} activeOpacity={0.7}>
+      <TouchableOpacity 
+        style={[styles.compactCard, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]} 
+        onPress={onPress} 
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        accessibilityHint="Opens article in browser"
+      >
         <View style={styles.compactContent}>
-          <Text style={[styles.compactTitle, { color: colors.text }]} numberOfLines={2}>{article.title}</Text>
+          <Text style={[styles.compactTitle, { color: colors.text }]} numberOfLines={2} maxFontSizeMultiplier={1.3}>{article.title}</Text>
           <View style={styles.compactMeta}>
-            <Text style={[styles.compactSource, { color: colors.primary }]} numberOfLines={1}>{article.source}</Text>
-            <Text style={[styles.compactDot, { color: colors.textMuted }]}>·</Text>
-            <Text style={[styles.compactDate, { color: colors.textMuted }]}>{formatDate(article.publishedAt)}</Text>
+            <Text style={[styles.compactSource, { color: colors.primary }]} numberOfLines={1} maxFontSizeMultiplier={1.3}>{article.source}</Text>
+            <Text style={[styles.compactDot, { color: colors.textMuted }]} maxFontSizeMultiplier={1.3}>·</Text>
+            <Text style={[styles.compactDate, { color: colors.textMuted }]} maxFontSizeMultiplier={1.3}>{dateLabel}</Text>
           </View>
         </View>
         {article.imageUrl && (
-          <Image source={{ uri: article.imageUrl }} style={styles.compactImage} />
+          <Image source={{ uri: article.imageUrl }} style={styles.compactImage} accessibilityLabel={`Article image for ${article.title}`} />
         )}
       </TouchableOpacity>
     );
   }
 
   return (
-    <TouchableOpacity style={[styles.card, { backgroundColor: colors.surface }]} onPress={onPress} activeOpacity={0.7}>
+    <TouchableOpacity 
+      style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]} 
+      onPress={onPress} 
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint="Opens article in browser"
+    >
+      {/* Hero Image */}
       {article.imageUrl && (
-        <Image source={{ uri: article.imageUrl }} style={styles.image} />
+        <Image source={{ uri: article.imageUrl }} style={styles.image} accessibilityLabel={`Article image for ${article.title}`} />
       )}
+
+      {/* Content */}
       <View style={styles.content}>
-        <Text style={[styles.title, { color: colors.text }]} numberOfLines={3}>{article.title}</Text>
+        <Text style={[styles.title, { color: colors.text }]} numberOfLines={3} maxFontSizeMultiplier={1.3}>{article.title}</Text>
+        
         {article.description && (
-          <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={2}>{article.description}</Text>
+          <Text style={[styles.description, { color: colors.textSecondary }]} numberOfLines={2} maxFontSizeMultiplier={1.3}>
+            {article.description}
+          </Text>
         )}
+
+        {/* Meta Row */}
         <View style={styles.meta}>
-          <Text style={[styles.source, { color: colors.primary }]} numberOfLines={1}>{article.source}</Text>
+          <View style={[styles.sourceBadge, { backgroundColor: colors.primaryLight }]}>
+            <Ionicons name="newspaper-outline" size={12} color={colors.primary} />
+            <Text style={[styles.source, { color: colors.primary }]} numberOfLines={1} maxFontSizeMultiplier={1.3}>{article.source}</Text>
+          </View>
+          
           {article.author && (
-            <>
-              <Text style={[styles.metaDot, { color: colors.textMuted }]}>·</Text>
-              <Text style={[styles.author, { color: colors.textSecondary }]} numberOfLines={1}>{article.author}</Text>
-            </>
+            <View style={styles.authorContainer}>
+              <Ionicons name="person-outline" size={12} color={colors.textSecondary} />
+              <Text style={[styles.author, { color: colors.textSecondary }]} numberOfLines={1} maxFontSizeMultiplier={1.3}>{article.author}</Text>
+            </View>
           )}
-          <Text style={[styles.metaDot, { color: colors.textMuted }]}>·</Text>
-          <Text style={[styles.date, { color: colors.textMuted }]}>{formatDate(article.publishedAt)}</Text>
+
+          <View style={styles.dateContainer}>
+            <Ionicons name="time-outline" size={12} color={colors.textMuted} />
+            <Text style={[styles.date, { color: colors.textMuted }]} maxFontSizeMultiplier={1.3}>{dateLabel}</Text>
+          </View>
         </View>
+
+        {/* Tags */}
         {article.tags && article.tags.length > 0 && (
           <View style={styles.tags}>
             {article.tags.slice(0, 3).map((tag, index) => (
-              <View key={index} style={[styles.tag, { backgroundColor: colors.muted }]}>
-                <Text style={[styles.tagText, { color: colors.textSecondary }]}>{tag}</Text>
+              <View key={tag} style={[styles.tag, { backgroundColor: colors.muted }]}>
+                <Text style={[styles.tagText, { color: colors.textSecondary }]} maxFontSizeMultiplier={1.3}>{tag}</Text>
               </View>
             ))}
           </View>
@@ -85,57 +119,75 @@ export const NewsCard = React.memo(function NewsCard({ article, onPress, compact
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: 12,
-    marginBottom: 12,
+    borderRadius: 16,
+    marginBottom: 16,
     overflow: 'hidden',
+    borderWidth: 1,
+    minHeight: 48,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 3,
+    elevation: 4,
   },
   image: {
     width: '100%',
     height: 180,
   },
   content: {
-    padding: 14,
+    padding: 16,
   },
   title: {
     fontSize: 17,
     fontWeight: '700',
-    marginBottom: 6,
+    marginBottom: 8,
     lineHeight: 22,
+    letterSpacing: -0.2,
   },
   description: {
     fontSize: 14,
-    marginBottom: 10,
+    marginBottom: 12,
     lineHeight: 20,
   },
   meta: {
     flexDirection: 'row',
     alignItems: 'center',
     flexWrap: 'wrap',
+    gap: 8,
+  },
+  sourceBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
   },
   source: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
+    marginLeft: 4,
+  },
+  authorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   author: {
-    fontSize: 13,
+    fontSize: 12,
+    marginLeft: 4,
     maxWidth: 120,
   },
-  metaDot: {
-    fontSize: 13,
-    marginHorizontal: 6,
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   date: {
-    fontSize: 13,
+    fontSize: 12,
+    marginLeft: 4,
   },
   tags: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 10,
+    marginTop: 12,
     gap: 6,
   },
   tag: {
@@ -149,10 +201,12 @@ const styles = StyleSheet.create({
   },
   
   compactCard: {
-    borderRadius: 10,
+    borderRadius: 12,
     padding: 12,
-    marginBottom: 8,
+    marginBottom: 12,
     flexDirection: 'row',
+    borderWidth: 1,
+    minHeight: 48,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -166,7 +220,7 @@ const styles = StyleSheet.create({
   compactTitle: {
     fontSize: 15,
     fontWeight: '600',
-    marginBottom: 6,
+    marginBottom: 8,
     lineHeight: 20,
   },
   compactMeta: {

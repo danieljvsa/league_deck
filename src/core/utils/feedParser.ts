@@ -56,7 +56,7 @@ export function parseRSSFeed(xml: string): ParsedFeed {
 
     return feed;
   } catch (error) {
-    console.error('Failed to parse RSS feed:', error);
+    if (__DEV__) console.error('Failed to parse RSS feed:', error);
     return {
       title: 'Unknown Feed',
       articles: [],
@@ -94,7 +94,7 @@ export function parseAtomFeed(xml: string): ParsedFeed {
 
     return feed;
   } catch (error) {
-    console.error('Failed to parse Atom feed:', error);
+    if (__DEV__) console.error('Failed to parse Atom feed:', error);
     return {
       title: 'Unknown Feed',
       articles: [],

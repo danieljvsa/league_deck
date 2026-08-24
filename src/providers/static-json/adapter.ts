@@ -37,7 +37,7 @@ export class StaticJsonAdapter implements ProviderAdapter {
     try {
       const response = await fetch(source);
       if (!response.ok) {
-        console.error(`Failed to fetch participants: ${response.status}`);
+        if (__DEV__) console.error(`Failed to fetch participants: ${response.status}`);
         return [];
       }
       
@@ -54,7 +54,7 @@ export class StaticJsonAdapter implements ProviderAdapter {
         metadata: p.metadata,
       }));
     } catch (error) {
-      console.error('Failed to fetch participants from static JSON:', error);
+      if (__DEV__) console.error('Failed to fetch participants from static JSON:', error);
       return [];
     }
   }
@@ -63,7 +63,7 @@ export class StaticJsonAdapter implements ProviderAdapter {
     try {
       const response = await fetch(source);
       if (!response.ok) {
-        console.error(`Failed to fetch events: ${response.status}`);
+        if (__DEV__) console.error(`Failed to fetch events: ${response.status}`);
         return [];
       }
       
@@ -85,7 +85,7 @@ export class StaticJsonAdapter implements ProviderAdapter {
         metadata: e.metadata,
       }));
     } catch (error) {
-      console.error('Failed to fetch events from static JSON:', error);
+      if (__DEV__) console.error('Failed to fetch events from static JSON:', error);
       return [];
     }
   }

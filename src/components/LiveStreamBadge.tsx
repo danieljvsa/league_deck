@@ -22,23 +22,23 @@ export function LiveStreamBadge({
   if (compact) {
     return (
       <View style={[styles.compactBadge, { backgroundColor: colors.live }]}>
-        <View style={[styles.liveIndicator, { backgroundColor: '#FFF' }]} />
-        <Text style={[styles.compactText, { color: '#FFF' }]}>LIVE</Text>
+        <View style={[styles.liveIndicator, { backgroundColor: colors.text }]} />
+        <Text style={[styles.compactText, { color: colors.text }]} maxFontSizeMultiplier={1.3}>LIVE</Text>
       </View>
     );
   }
 
   return (
     <View style={[styles.badge, { backgroundColor: colors.live }]}>
-      <View style={[styles.liveIndicator, { backgroundColor: '#FFF' }]} />
-      <Text style={[styles.liveText, { color: '#FFF' }]}>LIVE</Text>
+      <View style={[styles.liveIndicator, { backgroundColor: colors.text }]} />
+      <Text style={[styles.liveText, { color: colors.text }]} maxFontSizeMultiplier={1.3}>LIVE</Text>
       {quality && (
-        <View style={[styles.qualityBadge, { backgroundColor: 'rgba(255,255,255,0.3)' }]}>
-          <Text style={[styles.qualityText, { color: '#FFF' }]}>{quality}</Text>
+        <View style={[styles.qualityBadge, { backgroundColor: colors.textTertiary }]}>
+          <Text style={[styles.qualityText, { color: colors.background }]} maxFontSizeMultiplier={1.3}>{quality}</Text>
         </View>
       )}
       {viewerCount !== undefined && (
-        <Text style={[styles.viewerText, { color: '#FFF' }]}>
+        <Text style={[styles.viewerText, { color: colors.text }]} maxFontSizeMultiplier={1.3}>
           {viewerCount >= 1000 
             ? `${(viewerCount / 1000).toFixed(1)}K watching`
             : `${viewerCount} watching`
@@ -56,6 +56,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 12,
+    minHeight: 28,
   },
   liveIndicator: {
     width: 8,
@@ -88,6 +89,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 8,
+    minHeight: 24,
   },
   compactText: {
     fontSize: 10,

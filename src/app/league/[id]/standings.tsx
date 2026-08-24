@@ -1,14 +1,15 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { 
-  View, Text, FlatList, ScrollView, TouchableOpacity, 
-  StyleSheet, RefreshControl 
+  View, Text, ScrollView, StyleSheet, RefreshControl 
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLeagueStore } from '@/store/leagues';
 import { providerService } from '@/providers/service';
 import { Loading, Error, Empty } from '@/components/ui';
 import { StandingTable } from '@/components/StandingTable';
-import { Standing, Participant } from '@/domain';
+import { FilterTabs, FilterTab } from '@/components/FilterTabs';
+import { Standing } from '@/domain';
 import { useColors } from '@/constants/theme';
 
 export default function StandingsScreen() {
@@ -16,6 +17,7 @@ export default function StandingsScreen() {
   const { getLeague } = useLeagueStore();
   const league = getLeague(id);
   const colors = useColors();
+  const insets = useSafeAreaInsets();
   
   const [standings, setStandings] = useState<Standing[]>([]);
   const [participants, setParticipants] = useState<Map<string, string>>(new Map());
@@ -24,11 +26,7 @@ export default function StandingsScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeTableIndex, setActiveTableIndex] = useState(0);
 
-  useEffect(() => {
-    loadData();
-  }, [id]);
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!league) return;
 
     setIsLoading(true);
@@ -60,13 +58,36 @@ export default function StandingsScreen() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [league, id]);
 
-  const onRefresh = async () => {
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
-  };
+  }, [loadData]);
+
+  const handleTabPress = useCallback((tabId: string) => {
+    setActiveTableIndex(parseInt(tabId, 10));
+  }, []);
+
+  const tableFilters = useMemo(() => 
+    standings.map((standing, index) => ({
+      id: String(index),
+      label: standing.type === 'table' ? `Table ${index + 1}` : `Ranking ${index + 1}`,
+    })),
+    [standings]
+  );
+
+  const currentStanding = standings[activeTableIndex];
+
+  const showGoalDifference = useMemo(() => 
+    currentStanding?.entries.some(e => e.goalDifference !== undefined) ?? false,
+    [currentStanding]
+  );
 
   if (isLoading && !refreshing) {
     return <Loading message="Loading standings..." />;
@@ -80,50 +101,22 @@ export default function StandingsScreen() {
     return <Empty message="No standings available" />;
   }
 
-  const currentStanding = standings[activeTableIndex];
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-        {standings.length > 1 && (
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          style={[styles.tableSelector, { backgroundColor: colors.surface, borderBottomColor: colors.borderLight }]}
-          contentContainerStyle={styles.tableSelectorContent}
-        >
-          {standings.map((standing, index) => (
-            <TouchableOpacity
-              key={index}
-              style={[
-                styles.tableButton,
-                { backgroundColor: colors.muted },
-                activeTableIndex === index && [styles.tableButtonActive, { backgroundColor: colors.primary }]
-              ]}
-              onPress={() => setActiveTableIndex(index)}
-            >
-              <Text style={[
-                styles.tableButtonText,
-                { color: colors.textSecondary },
-                activeTableIndex === index && [styles.tableButtonTextActive, { color: '#FFF' }]
-              ]}>
-                {standing.type === 'table' ? `Table ${index + 1}` : `Ranking ${index + 1}`}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+      {/* Table Selector */}
+      {standings.length > 1 && (
+        <View style={[styles.tableSelector, { backgroundColor: colors.surface, borderBottomColor: colors.cardBorder }]}>
+          <FilterTabs
+            tabs={tableFilters}
+            activeTab={String(activeTableIndex)}
+            onTabPress={handleTabPress}
+          />
+        </View>
       )}
 
-      <FlatList
-        data={[currentStanding]}
-        keyExtractor={(_, index) => String(index)}
-        renderItem={() => (
-          <StandingTable
-            standings={[currentStanding]}
-            participants={participants}
-            showGoalDifference={currentStanding.entries.some(e => e.goalDifference !== undefined)}
-          />
-        )}
-        contentContainerStyle={styles.list}
+      {/* Standing Table */}
+      <ScrollView
+        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 20 }]}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -131,7 +124,15 @@ export default function StandingsScreen() {
             tintColor={colors.primary}
           />
         }
-      />
+      >
+        {currentStanding && (
+          <StandingTable
+            standings={[currentStanding]}
+            participants={participants}
+            showGoalDifference={showGoalDifference}
+          />
+        )}
+      </ScrollView>
     </View>
   );
 }
@@ -141,27 +142,10 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   tableSelector: {
-    maxHeight: 50,
+    paddingVertical: 12,
     borderBottomWidth: 1,
   },
-  tableSelectorContent: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 8,
-  },
-  tableButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 16,
-  },
-  tableButtonActive: {},
-  tableButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  tableButtonTextActive: {},
   list: {
-    padding: 12,
-    paddingBottom: 20,
+    padding: 16,
   },
 });
